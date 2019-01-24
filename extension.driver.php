@@ -525,13 +525,13 @@ Class Extension_Dashboard extends Extension{
 				$version = phpversion();
 				if ($ver > 7.0) {
 					$dl->appendChild(new XMLElement('dt', __('PHP Version')));
-					$dl->appendChild(new XMLElement('dd', '<span style="color:green">' . $version . '</span>'));
+					$dl->appendChild(new XMLElement('dd', '<span class="status-ok">' . $version . '</span>'));
 				} elseif ($ver === 7.0) {
 					$dl->appendChild(new XMLElement('dt', __('PHP Version')));
-					$dl->appendChild(new XMLElement('dd', '<span style="color:orange">' . $version . '<br />Please go to your server management and check if a newer PHP version is available.</span>'));
+					$dl->appendChild(new XMLElement('dd', '<span class="status-notice">' . $version . '<br />Please go to your server management and check if a newer PHP version is available.</span>'));
 				} else {
 					$dl->appendChild(new XMLElement('dt', __('PHP Version')));
-					$dl->appendChild(new XMLElement('dd', '<span style="color:red">' . $version . '<br />Your PHP version is outdated. For security reasons, please go to your server management and set the current PHP version (> 7.0) for this host.</        span>'));
+					$dl->appendChild(new XMLElement('dd', '<span class="status-error">' . $version . '<br />Your PHP version is outdated. For security reasons, please go to your server management and set the current PHP version (> 7.0) for this host.</span>'));
 				}
 
 				$container->appendChild(new XMLElement('h4', __('Configuration')));

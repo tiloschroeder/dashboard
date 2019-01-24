@@ -307,3 +307,15 @@ table.skinny th {
 	padding: 2px 5px 8px 5px;
 	line-height: 1;
 }
+
+.status-notice {
+	color: #f9ba4b;
+}
+
+.status-ok {
+	color: #90c648;
+}
+
+.status-error {
+	color: #c4301e;
+}
