@@ -105,4 +105,13 @@
 		'Disable Editing' => 
 		'Speichern',
 
+		'PHP Version' =>
+		'PHP-Version',
+
+		'Please go to your server management and check if a newer PHP version is available.' =>
+		'Bitte log dich im Server-Management ein und prüfe, ob eine neuere PHP-Version verfügbar ist.',
+
+		'Your PHP version is outdated. For security reasons, please go to your server management and set the current PHP version (> 7.0) for this host.' =>
+		'Die PHP-Version ist veraltet. Wechsel aus Sicherheitsgründen in das Server-Management und stelle die aktuelle PHP-Version (> 7.0) für diesen Host ein.',
+
 	);
