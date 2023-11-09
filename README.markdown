@@ -1,3 +1,5 @@
+![Static Badge](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge&logo=php&logoColor=green&label=PHP%208)
+
 # Dashboard
 
 ## Purpose
