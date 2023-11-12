@@ -2,6 +2,8 @@
 
 # Dashboard
 
+![Screenshot_20231109_141327](https://github.com/tiloschroeder/dashboard/assets/4321647/353b3f31-534a-4b39-8161-1d1989660fbd)
+
 ## Purpose
 To provide a Dashboard summary screen for users. Dashboard "panels" can contain any information. This extension provides the framework for building a Dashboard, and provides four basic panel types. Other extensions can provide their own panel types.
 
