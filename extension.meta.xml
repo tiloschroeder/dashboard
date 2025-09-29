@@ -3,7 +3,6 @@
     <name>Dashboard</name>
     <description>Provide a Dashboard summary screen with configurable panels</description>
     <repo type="github">https://github.com/tiloschroeder/dashboard</repo>
-    <url type="discuss">http://getsymphony.com/discuss/thread/48297/</url>
     <types>
         <type>Interface</type>
     </types>
@@ -21,6 +20,10 @@
         <item type="image" url="http://symphonyextensions.com/nickdunn/dashboard/media/dashboard.png">Example dashboard</item>
     </media>
     <releases>
+        <release version="2.2.0" date="2025-04-09" min="2.5.0" max="2.x.x">
+            * Sym8 version is compared daily via API endpoint
+            * PHP versions created as a data record in accordance with the supported versions
+        </release>
         <release version="2.1.0" date="2023-11-09" min="2.5.0" max="2.x.x">
             * Symphony Overview with PHP-Version
         </release>

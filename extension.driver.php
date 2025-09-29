@@ -10,7 +10,7 @@ Class Extension_Dashboard extends Extension
 
     public function install()
     {
-        return Symphony::Database()->query("CREATE TABLE `tbl_dashboard_panels` (
+        return Symphony::Database()->query("CREATE TABLE  IF NOT EXISTS `tbl_dashboard_panels` (
         `id` int(11) NOT NULL auto_increment,
         `label` varchar(255) default NULL,
         `type` varchar(255) default NULL,
@@ -18,7 +18,7 @@ Class Extension_Dashboard extends Extension
         `placement` varchar(255) default NULL,
         `sort_order` int(11) default '0',
         PRIMARY KEY  (`id`)
-        ) ENGINE=MyISAM");
+        ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     }
 
     public function uninstall()
@@ -68,6 +68,7 @@ Class Extension_Dashboard extends Extension
             array(
                 'name'      => __('Dashboard'),
                 'type'      => 'content',
+                'index'     => 200,
                 'children'  => array(
                     array(
                         'link'      => '/index/',
@@ -264,6 +265,7 @@ Class Extension_Dashboard extends Extension
         $context['types']['datasource_to_table'] = __('Data Source to Table');
         $context['types']['rss_reader'] = __('RSS Reader');
         $context['types']['html_block'] = __('HTML Block');
+		$context['types']['markdown_text'] = __('Markdown Text');
         $context['types']['symphony_overview'] = __('Symphony Overview');
     }
 
@@ -276,6 +278,8 @@ Class Extension_Dashboard extends Extension
         $config['datasource'] = $config['datasource'] ?? null;
         $config['cache'] = $config['cache'] ?? null;
         $config['show'] = $config['show'] ?? null;
+        $config['formatter'] = $config['formatter'] ?? null;
+        $config['text'] = $config['text'] ?? null;
 
         switch($context['type']) {
 
@@ -353,6 +357,33 @@ Class Extension_Dashboard extends Extension
                 $context['form'] = $fieldset;
 
             break;
+
+            case 'markdown_text':
+
+                $fieldset = new XMLElement('fieldset', NULL, array('class' => 'settings'));
+                $fieldset->appendChild(new XMLElement('legend', __('Markdown Text Block')));
+
+                $formatters = array();
+                foreach(TextformatterManager::listAll() as $tf) {
+                    $formatters[] = array(
+                        $tf['handle'],
+                        ($config['formatter'] == $tf['handle']),
+                        $tf['name']
+                    );
+                }
+
+                $fieldset = new XMLElement('fieldset', NULL, array('class' => 'settings'));
+                $fieldset->appendChild(new XMLElement('legend', __('Markdown Text')));
+
+                $label = Widget::Label(__('Text Formatter'), Widget::Select('config[formatter]', $formatters));
+                $fieldset->appendChild($label);
+
+                $label = Widget::Label(__('Text'), Widget::Textarea('config[text]', 6, 25, $config['text']));
+                $fieldset->appendChild($label);
+
+                $context['form'] = $fieldset;
+
+            break;
         }
 
     }
@@ -360,7 +391,11 @@ Class Extension_Dashboard extends Extension
     public function render_panel($context)
     {
 
+        require_once(TOOLKIT . '/class.gateway.php');
+        require_once(CORE . '/class.cacheable.php');
+
         $config = $context['config'];
+        $gatewayTimeout = 2;
 
         switch($context['type']) {
 
@@ -394,34 +429,33 @@ Class Extension_Dashboard extends Extension
 
             case 'rss_reader':
 
-                require_once(TOOLKIT . '/class.gateway.php');
-                require_once(CORE . '/class.cacheable.php');
-
                 $cache_id = md5('rss_reader_cache' . $config['url']);
                 $cache = new Cacheable(Administration::instance()->Database());
                 $data = $cache->check($cache_id);
 
-                if(!$data) {
+                if (!$data) {
 
-                        $ch = new Gateway;
-                        $ch->init();
-                        $ch->setopt('URL', $config['url']);
-                        $ch->setopt('TIMEOUT', 6);
-                        $new_data = $ch->exec();
-                        $writeToCache = true;
+                    $gateway = new Gateway;
+                    $gateway->init();
+                    $gateway->setopt('URL', $config['url']);
+                    $gateway->setopt('TIMEOUT', $gatewayTimeout);
+                    $new_data = $gateway->exec();
+                    $writeToCache = true;
 
-                        if ((int)$config['cache'] > 0) {
-                            $cache->write($cache_id, $new_data, $config['cache']);
-                        }
+                    if (!empty($new_data)) {
+                        // Write to cache
+                        $cache->write($cache_id, $new_data, $config['cache']);
 
                         $xml = $new_data;
-                        if (empty($xml) && $data) $xml = $data['data'];
+                    } elseif ($data && isset($data['data'])) {
+                        $xml = $data['data'];
+                    }
 
                 } else {
                     $xml = $data['data'];
                 }
 
-                if(!$xml) $xml = '<error>' . __('Error: could not retrieve panel XML feed.') . '</error>';
+                if (!$xml) $xml = '<error>' . __('Error: could not retrieve panel XML feed.') . '</error>';
 
                 require_once(TOOLKIT . '/class.xsltprocess.php');
                 $proc = new XsltProcess();
@@ -437,34 +471,33 @@ Class Extension_Dashboard extends Extension
 
             case 'html_block':
 
-                require_once(TOOLKIT . '/class.gateway.php');
-                require_once(CORE . '/class.cacheable.php');
-
                 $cache_id = md5('html_block_' . $config['url']);
                 $cache = new Cacheable(Administration::instance()->Database());
                 $data = $cache->check($cache_id);
 
-                if(!$data) {
+                if (!$data) {
 
-                        $ch = new Gateway;
-                        $ch->init();
-                        $ch->setopt('URL', $config['url']);
-                        $ch->setopt('TIMEOUT', 6);
-                        $new_data = $ch->exec();
-                        $writeToCache = true;
+                    $gateway = new Gateway;
+                    $gateway->init();
+                    $gateway->setopt('URL', $config['url']);
+                    $gateway->setopt('TIMEOUT', $gatewayTimeout);
+                    $new_data = $gateway->exec();
+                    $writeToCache = true;
 
-                        if ((int)$config['cache'] > 0) {
-                            $cache->write($cache_id, $new_data, $config['cache']);
-                        }
+                    if (!empty($new_data)) {
+                        // Write to cache
+                        $cache->write($cache_id, $new_data, $config['cache']);
 
                         $html = $new_data;
-                        if (empty($html) && $data) $html = $data['data'];
+                    } elseif ($data && isset($data['data'])) {
+                        $html = $data['data'];
+                    }
 
                 } else {
                     $html = $data['data'];
                 }
 
-                if(!$html) $html = '<p class="invalid">' . __('Error: could not retrieve panel HTML.') . '</p>';
+                if (!$html) $html = '<p class="invalid">' . __('Error: could not retrieve panel HTML.') . '</p>';
 
                 $context['panel']->appendChild(new XMLElement('div', $html));
 
@@ -472,69 +505,107 @@ Class Extension_Dashboard extends Extension
 
             case 'symphony_overview':
 
+                $phpVersions = array(
+                    '8.0' => array(
+                        'active' => '2022-11-26',
+                        'security' => '2023-11-26'
+                    ),
+                    '8.1' => array(
+                        'active' => '2023-11-25',
+                        'security' => '2025-12-31'
+                    ),
+                    '8.2' => array(
+                        'active' => '2024-12-31',
+                        'security' => '2026-12-31'
+                    ),
+                    '8.3' => array(
+                        'active' => '2025-12-31',
+                        'security' => '2027-12-31'
+                    ),
+                    '8.4' => array(
+                        'active' => '2026-12-31',
+                        'security' => '2028-12-31'
+                    )
+                );
+                $currentPhpVersion = PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;
+                $today = date('Y-m-d');
+
+                $cacheUrl = 'https://sym8.io/public-api/version';
+                $cacheTime = 1440;
+                $cacheId = md5('sym8_version' . $cacheUrl);
+                $cache = new Cacheable(Administration::instance()->Database());
+                $data = $cache->check($cacheId);
+                $lastCheck = null;
+                $sup = '';
+                if ($data !== false) {
+                    $sup = '<sup>*</sup>';
+                    $lastCheck = $data['creation'];
+                }
+
                 $container = new XMLElement('div');
 
                 $dl = new XMLElement('dl');
                 $dl->appendChild(new XMLElement('dt', __('Website Name')));
                 $dl->appendChild(new XMLElement('dd', '<span  class="badge badge-info">' . Symphony::Configuration()->get('sitename', 'general') . '</span>'));
 
-                $current_version = Symphony::Configuration()->get('version', 'symphony');
-                #$current_version = '2.7.8';
+                $currentSymVersion = Symphony::Configuration()->get('version', 'symphony');
+                $apiVersion = null;
 
-                $timeout = $timeout ?? 60;
-                require_once(TOOLKIT . '/class.gateway.php');
-                $ch = new Gateway;
-                $ch->init();
-                $ch->setopt('URL', 'https://api.github.com/repos/symphonycms/symphony-2/tags');
-                $ch->setopt('TIMEOUT', $timeout);
-                $repo_tags = $ch->exec();
-                $repo_tags = json_decode($repo_tags);
+                if (!$data) {
+                    $gateway = new Gateway;
+                    $gateway->init();
+                    $gateway->setopt('URL', $cacheUrl);
+                    $gateway->setopt('TIMEOUT', $gatewayTimeout);
+                    $new_data = $gateway->exec();
+                    $writeToCache = true;
 
-                // tags request found
-                if(is_array($repo_tags)) {
-                    $tags = array();
+                    if (!empty($new_data)) {
+                        // Write to cache
+                        $cache->write($cacheId, $new_data, $cacheTime);
 
-                    foreach($repo_tags as $tag) {
-                        // remove tags that contain strings
-                        if(preg_match('/[a-zA]/i', $tag->name)) continue;
-                        if(str_contains('3.0.0', $tag->name)) continue;
-                        $tags[] = $tag->name;
+                        $apiVersion = json_decode($new_data);
                     }
 
-                    natsort($tags);
-                    rsort($tags);
-
-                    $latest_version = reset($tags);
-
-                }
-                // request for tags failed, assume current version is latest
-                else {
-                    $latest_version = $current_version;
+                } else {
+                    $apiVersion = json_decode($data['data']);
                 }
 
-                $needs_update = version_compare($latest_version, $current_version, '>');
+                if ($apiVersion && isset($apiVersion->version)) {
+                    $latestSymVersion = $apiVersion->version;
+                } else {
+                    $latestSymVersion = $currentSymVersion;
+                }
+
+                $needsUpdate = version_compare($latestSymVersion, $currentSymVersion, '>');
 
                 $dl->appendChild(new XMLElement('dt', __('Version')));
                 $dl->appendChild(new XMLElement(
                     'dd',
-                    ($needs_update) ? '<span class="badge badge-danger">'. $current_version . '</span><br>(<a href="http://getsymphony.com/download/releases/version/'.$latest_version.'/">' . __('Latest is %s', array($latest_version)) . '</a>)' : '<span class="badge badge-success">' . $current_version . '</span>'
+                    ($needsUpdate) ? '<span class="badge badge-warning">'. $currentSymVersion . '</span>' . $sup . '<br>(<a href="https://sym8.io/releases/'.$latestSymVersion.'/">' . __('Latest is %s', array($latestSymVersion)) . '</a>)' : '<span class="badge badge-success">' . $currentSymVersion . '</span>' . $sup
                 ));
 
                 $dl->appendChild(new XMLElement('dt', __('PHP-Version')));
-                if ( version_compare( PHP_VERSION, '8.0', '<' ) ) {
+                if ( PHP_MAJOR_VERSION < 8 || !isset($phpVersions[$currentPhpVersion]) ) {
                     $dl->appendChild(new XMLElement(
                         'dd',
                         '<span class="badge badge-danger">' . PHP_VERSION . '</span><br />Your PHP version is outdated. For security reasons, please go to your server management and set a newer PHP version for this host.'
                     ));
-                } else if ( version_compare( PHP_VERSION, '8.1', '>=' ) ) {
+                }
+                if ( $today > $phpVersions[$currentPhpVersion]['security'] ) {
                     $dl->appendChild(new XMLElement(
-                        'dd class="badge badge-success"',
-                        PHP_VERSION
+                        'dd',
+                        '<span class="badge badge-danger">' . PHP_VERSION . '</span><br />Your PHP version is outdated. For security reasons, please go to your server management and set a newer PHP version for this host.'
                     ));
-                } else if ( version_compare( PHP_VERSION, '8.0', '>=' ) ) {
+                }
+                else if ( $today > $phpVersions[$currentPhpVersion]['active'] ) {
                     $dl->appendChild(new XMLElement(
                         'dd',
                         '<span class="badge badge-warning">' . PHP_VERSION . '</span><br />Please go to your server management and check if a newer PHP version is available.'
+                    ));
+                } else {
+                    $dl->appendChild(new XMLElement(
+                        'dd class="badge badge-success"',
+                        PHP_VERSION
                     ));
                 }
 
@@ -561,7 +632,25 @@ Class Extension_Dashboard extends Extension
                 $container->appendChild(new XMLElement('h4', __('Statistics')));
                 $container->appendChild($dl);
 
+                if ($lastCheck !== null) {
+                    $span = new XMLElement('span');
+                    $span->appendChild(new XMLElement('small', __($sup . ' Last checked: ') . date('Y-m-d H:i', $lastCheck )));
+                    $container->appendChild($span);
+                }
+
                 $context['panel']->appendChild($container);
+
+            break;
+
+            case 'markdown_text':
+
+                $config['text'] = $config['text'] ?? null;
+                $config['formatter'] = $config['formatter'] ?? null;
+
+                $formatter = TextformatterManager::create($config['formatter']);
+                $html = $formatter->run($config['text']);
+
+                $context['panel']->appendChild(new XMLElement('div', $html));
 
             break;
 
