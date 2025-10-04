@@ -66,8 +66,11 @@ Class contentExtensionDashboardIndex extends AdministrationPage {
 		}
 
 		$this->Form->setAttribute('class', 'two columns');
-		
-		$this->appendSubheading($welcome . ', ' . $author->get('first_name'), $actions);
+		if ( $author->isDeveloper() ) {
+            $this->appendSubheading( $welcome . ', ' . $author->get('first_name'), $actions );
+        } else {
+            $this->appendSubheading( $welcome . ', ' . $author->get('first_name') );
+        }
 		$this->insertDrawer(Widget::Drawer('dashboard', 'Dashboard', new XMLElement('span', ''), 'closed', time()), 'horizontal', FALSE);
 		
 		$container = new XMLElement('div', NULL, array('id' => 'dashboard'));
