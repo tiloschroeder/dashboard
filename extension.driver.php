@@ -540,18 +540,18 @@ Class Extension_Dashboard extends Extension
                 ));
 
                 $dl->appendChild(new XMLElement('dt', __('PHP-Version')));
-                if (PHP_MAJOR_VERSION < 8 || !isset($phpVersions[$currentPhpVersion])) {
+                if (
+                    $today > $phpVersions[$currentPhpVersion]['security']
+                    || PHP_MAJOR_VERSION < 8
+                    || !isset($phpVersions[$currentPhpVersion])
+                ) {
                     $dl->appendChild(new XMLElement(
                         'dd',
                         '<span class="badge badge-danger">' . PHP_VERSION . '</span><br />Your PHP version is outdated. For security reasons, please go to your server management and set a newer PHP version for this host.'
                     ));
-                }
-                if ($today > $phpVersions[$currentPhpVersion]['security']) {
-                    $dl->appendChild(new XMLElement(
-                        'dd',
-                        '<span class="badge badge-danger">' . PHP_VERSION . '</span><br />Your PHP version is outdated. For security reasons, please go to your server management and set a newer PHP version for this host.'
-                    ));
-                } elseif ($today > $phpVersions[$currentPhpVersion]['active']) {
+                } elseif (
+                    $today > $phpVersions[$currentPhpVersion]['active']
+                ) {
                     $dl->appendChild(new XMLElement(
                         'dd',
                         '<span class="badge badge-warning">' . PHP_VERSION . '</span><br />Please go to your server management and check if a newer PHP version is available.'
