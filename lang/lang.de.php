@@ -30,7 +30,7 @@ $dictionary = array(
     'Übersicht',
 
     'Data Source to Table' =>
-    'Datenquellentabelle',
+    'Datenquelle als Tabelle',
 
     'Delete Panel' =>
     'Abschnitt löschen',
@@ -63,7 +63,7 @@ $dictionary = array(
     'Markdown-Abschnitt',
 
     'Nice to meet you' =>
-    'Schön Sie kennenzulernen',
+    'Schön dich zu sehen',
 
     'Page URL' =>
     'Seiten-URL',
@@ -99,8 +99,8 @@ $dictionary = array(
     'Einträge',
 
     'Enable Editing' =>
-    'Anpassen',
+    'Bearbeiten aktivieren',
 
     'Disable Editing' =>
-    'Speichern',
+    'Bearbeiten deaktivieren',
 );

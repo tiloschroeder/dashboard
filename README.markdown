@@ -1,4 +1,4 @@
-![Static Badge](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge&logo=php&logoColor=green&label=PHP%208)
+![PHP 7 passing](https://img.shields.io/badge/build-passing-brightgreen?style=flat-square&logo=php&logoColor=green&label=PHP%207) ![PHP 8 passing](https://img.shields.io/badge/build-passing-brightgreen?style=flat-square&logo=php&logoColor=green&label=PHP%208)
 
 # Dashboard
 

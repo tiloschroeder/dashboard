@@ -483,6 +483,10 @@ Class Extension_Dashboard extends Extension
                     '8.4' => array(
                         'active' => '2026-12-31',
                         'security' => '2028-12-31'
+                    ),
+                    '8.5' => array(
+                        'active' => '2027-12-31',
+                        'security' => '2029-12-31'
                     )
                 );
                 $currentPhpVersion = PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;
