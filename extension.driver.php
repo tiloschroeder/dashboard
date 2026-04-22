@@ -413,9 +413,20 @@ Class Extension_Dashboard extends Extension
                     $new_data = $gateway->exec();
                     $writeToCache = true;
                     if (!empty($new_data)) {
-                        // Write to cache
-                        $cache->write($cache_id, $new_data, $config['cache']);
-                        $xml = $new_data;
+                        // Test if $data contains valid XML
+                        $previous = libxml_use_internal_errors();
+                        libxml_use_internal_errors(true);
+                        $test_xml = simplexml_load_string($new_data);
+
+                        if ($test_xml !== false) {
+                            // Write to cache
+                            $cache->write($cache_id, $new_data, $config['cache']);
+                            $xml = $new_data;
+                        }
+
+                        libxml_clear_errors();
+                        libxml_use_internal_errors($previous);
+
                     } elseif ($data && isset($data['data'])) {
                         $xml = $data['data'];
                     }
@@ -423,7 +434,9 @@ Class Extension_Dashboard extends Extension
                     $xml = $data['data'];
                 }
 
-                if (!$xml) $xml = '<error>' . __('Error: could not retrieve panel XML feed.') . '</error>';
+                if (!$xml) {
+                    $xml = '<error>' . __('Error: could not retrieve panel XML feed.') . '</error>';
+                }
 
                 require_once(TOOLKIT . '/class.xsltprocess.php');
                 $proc = new XsltProcess();
